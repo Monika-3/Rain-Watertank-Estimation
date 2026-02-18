@@ -73,7 +73,7 @@ N --> O[Send Email to User]
 - **Integrated Structural Checks** — Includes reinforcement and safety validations.  
 - **Automated Cost Breakdown** — Generates detailed construction cost estimation.  
 - **Instant Report Delivery** — Sends a formatted technical report via email automatically.
-
+  
 ---
 
 ## 🖥 Deployment
