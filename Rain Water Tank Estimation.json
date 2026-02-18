@@ -1,0 +1,708 @@
+{
+  "name": "Rain Water Tank Estimation",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "RAINWATER UNDERGROUND STORAGE TANK ESTIMATION ",
+        "formDescription": "Enter your details to get detailed estimation of the storage tank",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Location",
+              "placeholder": "e.g., Coimbatore",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Roof Area",
+              "fieldType": "number",
+              "placeholder": "in (m^2)",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Roof Type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Concrete"
+                  },
+                  {
+                    "option": "Tiles"
+                  },
+                  {
+                    "option": "GI Sheet"
+                  },
+                  {
+                    "option": "Asbestos Sheet"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Purpose",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Residential"
+                  },
+                  {
+                    "option": "Industrial"
+                  },
+                  {
+                    "option": "Hospital"
+                  },
+                  {
+                    "option": "Hostel"
+                  },
+                  {
+                    "option": "Hotel"
+                  },
+                  {
+                    "option": "Office/School"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Number of users",
+              "fieldType": "number",
+              "placeholder": "e.g., 4",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "placeholder": "abc@gmail.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        -128
+      ],
+      "id": "aeb33654-06f0-4f88-9b82-4c5172a9cc64",
+      "name": "On form submission",
+      "webhookId": "017a25c2-faaa-4107-919c-5a20ca64820c"
+    },
+    {
+      "parameters": {
+        "url": "=https://geocoding-api.open-meteo.com/v1/search?name={{ $json.Location}}&count=1&language=en&format=json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        272,
+        -336
+      ],
+      "id": "f3ef9ec3-ba91-4066-8eb5-646bb6213a59",
+      "name": "Geocode",
+      "alwaysOutputData": true,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "city",
+              "name": "city",
+              "value": "={{ $('Geocode').item.json.results[0].name }}",
+              "type": "string"
+            },
+            {
+              "id": "country",
+              "name": "country",
+              "value": "={{ $('Geocode').item.json.results[0].country }}",
+              "type": "string"
+            },
+            {
+              "id": "total_annual_precipitation_mm",
+              "name": "total_wet_month_precipitation_mm",
+              "value": "={{ $json.daily.precipitation_sum.reduce((a, b) => a + b, 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "days_with_rain",
+              "name": "days_with_rain",
+              "value": "={{ $json.daily.precipitation_sum.filter(x => x > 0).length }}",
+              "type": "number"
+            },
+            {
+              "id": "year",
+              "name": "year(Oct - Dec)",
+              "value": "2024",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        -336
+      ],
+      "id": "bee8b8f9-5a9b-4292-b4d7-aba978757005",
+      "name": "Calculate Annual Rainfall"
+    },
+    {
+      "parameters": {
+        "url": "=https://archive-api.open-meteo.com/v1/archive?latitude={{ $json.results[0].latitude }}&longitude={{ $json.results[0].longitude }}&start_date=2024-10-01&end_date=2024-12-31&daily=precipitation_sum&timezone=auto",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        464,
+        -336
+      ],
+      "id": "16be1c60-8e43-4e04-8908-b22d6a7e13f4",
+      "name": "Get wet month precipitation"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YJldxEtBDuJLFgO6fMsd2KVaEHTG5BswzFq3-hlGDYE",
+          "mode": "list",
+          "cachedResultName": "RainWater Inputs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YJldxEtBDuJLFgO6fMsd2KVaEHTG5BswzFq3-hlGDYE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Consumption",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YJldxEtBDuJLFgO6fMsd2KVaEHTG5BswzFq3-hlGDYE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        272,
+        -128
+      ],
+      "id": "949192ce-df03-47f1-8e34-8de7ef231982",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qVBrMFy8FHuTSasi",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the Purpose from form submission\nconst formData = $('On form submission').first().json;\nconst selectedPurpose = formData.Purpose;\n\n//Entering Default Values\nconst length_of_dry_season = 150;\n\n// Get all rows from Google Sheets\nconst sheetRows = $input.all();\n\n// Find the row that matches the selected Purpose\nconst matchingRow = sheetRows.find(row => row.json.Purpose === selectedPurpose);\n\n// Check if a match was found\nif (!matchingRow) {\n  throw new Error(`No consumption data found for purpose: ${selectedPurpose}`);\n}\n\n// Return the matching consumption data along with form data\nreturn {\n  json: {\n    // Form data\n     purpose: formData.Purpose,\n     number_of_users: formData['Number of users'],\n\n    //Manual Data\n     t:length_of_dry_season,\n    \n    // Consumption data from Google Sheets\n    daily_consumption_liters: matchingRow.json['consumption(l/p/d)'],\n    percentage : matchingRow.json['Percentage(%)']\n  }\n};\n    "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -128
+      ],
+      "id": "c6dae4cb-9334-49a5-be73-55ed4f19bf00",
+      "name": "get consumption",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YJldxEtBDuJLFgO6fMsd2KVaEHTG5BswzFq3-hlGDYE",
+          "mode": "list",
+          "cachedResultName": "RainWater Inputs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YJldxEtBDuJLFgO6fMsd2KVaEHTG5BswzFq3-hlGDYE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 377417297,
+          "mode": "list",
+          "cachedResultName": "Runoff Coefficient",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YJldxEtBDuJLFgO6fMsd2KVaEHTG5BswzFq3-hlGDYE/edit#gid=377417297"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        288,
+        64
+      ],
+      "id": "c4efea3a-8b60-4237-8750-0a2059e5aecc",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qVBrMFy8FHuTSasi",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        976,
+        -144
+      ],
+      "id": "19e7c61b-2c8a-4fb1-8267-49a412411bcc",
+      "name": "Merge",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the Purpose from form submission\nconst formData = $('On form submission').first().json;\nconst selectedRoofType = formData['Roof Type'];\n\n// Get all rows from Google Sheets\nconst sheetRows = $input.all();\n\n// Find the row that matches the selected Purpose\nconst matchingRow = sheetRows.find(row => row.json['Roof Type'] === selectedRoofType);\n\n// Check if a match was found\nif (!matchingRow) {\n  throw new Error(`No Runoff Coefficient data found for Roof Type: ${selectedRoofType}`);\n}\n\n// Return the matching consumption data along with form data\nreturn {\n  json: {\n    // Form data\n     rooftype: formData['Roof Type'],\n    \n    \n    // Consumption data from Google Sheets\n    runoff_coefficient:$input.first().json['Runoff Coefficient'],\n  }\n};\n    "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        64
+      ],
+      "id": "714f0bc0-c6a3-467a-8275-c5625d9a03ef",
+      "name": "Runoff Coefficient",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const rainfallData = $('Calculate Annual Rainfall').first().json;\nconst consumptionData = $('get consumption').first().json;\nconst runoffData = $('Runoff Coefficient').first().json;\nconst t = Number($('get consumption').first().json.t);\nconst n = Number($('get consumption').first().json['number_of_users']);\nconst q = Number($('get consumption').first().json['daily_consumption_liters']);\nconst percent = $('get consumption').first().json.percentage;\nconst Vreqd = t*n*q*percent; //vreqd in litres\n\nconst A = $('On form submission').first().json['Roof Area'];\nconst Rwet = $('Calculate Annual Rainfall').first().json['total_wet_month_precipitation_mm'];\nconst Rc = $('Runoff Coefficient').first().json['runoff_coefficient'];\nconst Vcltd = A*Rwet*Rc; //Vcltd in litres\n\n\n\nconst Vdgn   = Math.min(Vreqd, Vcltd);\nconst Vdesign = Vdgn/1000;  //ltrs to cum\n\n\n\nreturn [\n  {\n  x:rainfallData,\n  y:consumptionData,\n  z:runoffData,\n  volume:Vreqd,\n  Vcollected:Vcltd,\n  Vdsgn:Vdesign,\n  }\n \n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        -128
+      ],
+      "id": "57a71385-686e-4a75-9ca8-74de9f708269",
+      "name": "Design Volume"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1S-bAc6p4qqWGdzJxWbvJOAASEYbLmjf57OJCsWBM7wk",
+          "mode": "list",
+          "cachedResultName": "Design of Underground RCC Tank",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S-bAc6p4qqWGdzJxWbvJOAASEYbLmjf57OJCsWBM7wk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1208075489,
+          "mode": "list",
+          "cachedResultName": "Inputs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S-bAc6p4qqWGdzJxWbvJOAASEYbLmjf57OJCsWBM7wk/edit#gid=1208075489"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 2,
+            "length": "={{ $json.length }}",
+            "width": "={{ $json.width }}",
+            "depth": "={{ $json.depth }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "length",
+              "displayName": "length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "width",
+              "displayName": "width",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "depth",
+              "displayName": "depth",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1584,
+        -128
+      ],
+      "id": "0618e989-6bb9-483e-b9ee-f61288372f88",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qVBrMFy8FHuTSasi",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const lwratio = 2;       \nconst MinDepth = 1.8; \nconst MaxDepth = 5.0;\nconst v = $('Design Volume').first().json.Vdsgn;\n\n\nlet dep, wid, len;\n\n// Calculate dimensions at minimum depth first\nlet depAtMin = MinDepth;\nlet widAtMin = Math.sqrt(v / (lwratio * depAtMin));\nlet lenAtMin = lwratio * widAtMin;\n\n// Calculate dimensions at maximum depth\nlet depAtMax = MaxDepth;\nlet widAtMax = Math.sqrt(v / (lwratio * depAtMax));\nlet lenAtMax = lwratio * widAtMax;\n\n// Choose depth based on which configuration is more reasonable\n// If minimum depth gives very large L&W, use a deeper option\nif (lenAtMin > 15 || widAtMin > 10) {\n  // Use maximum depth for large volumes\n  dep = MaxDepth;\n  wid = Math.sqrt(v / (lwratio * dep));\n  len = lwratio * wid;\n} else {\n  // Use minimum depth for smaller volumes\n  dep = MinDepth;\n  wid = Math.sqrt(v / (lwratio * dep));\n  len = lwratio * wid;\n}\n\n// Alternative approach: Scale depth proportionally with volume\n// Uncomment this section if you want depth to increase gradually with volume\n/*\nconst minVol = MinDepth * Math.pow(3, 2) * lwratio; // ~32.4 m³\nconst maxVol = MaxDepth * Math.pow(8, 2) * lwratio; // ~640 m³\n\nif (v <= minVol) {\n  dep = MinDepth;\n} else if (v >= maxVol) {\n  dep = MaxDepth;\n} else {\n  // Linear interpolation between MinDepth and MaxDepth based on volume\n  dep = MinDepth + (MaxDepth - MinDepth) * ((v - minVol) / (maxVol - minVol));\n}\nwid = Math.sqrt(v / (lwratio * dep));\nlen = lwratio * wid;\n*/\n\n// Round off values\ndep = Math.round(dep * 10) / 10;\nwid = Math.round(wid * 10) / 10;\nlen = Math.round(len * 10) / 10;\n\nreturn [{\n  length: len,\n  width: wid,\n  depth: dep,\n}];\n    \n "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        -128
+      ],
+      "id": "67f475b7-aa72-46c8-8eca-b3d97d44ba20",
+      "name": "Obtain length,breadth,depth",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1S-bAc6p4qqWGdzJxWbvJOAASEYbLmjf57OJCsWBM7wk",
+          "mode": "list",
+          "cachedResultName": "Design of Underground RCC Tank",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S-bAc6p4qqWGdzJxWbvJOAASEYbLmjf57OJCsWBM7wk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 897178738,
+          "mode": "list",
+          "cachedResultName": "Sheet7",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S-bAc6p4qqWGdzJxWbvJOAASEYbLmjf57OJCsWBM7wk/edit#gid=897178738"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1792,
+        -128
+      ],
+      "id": "b0aa146e-0ba1-4f37-a2ad-02326a8f8851",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qVBrMFy8FHuTSasi",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "12787e23-5df6-4998-9b71-21c074d7ff4a",
+              "name": "Site Details",
+              "value": "=1.Site Details:\nLocation (as entered): {{ $('Design Volume').item.json.x.city }}\nRain Water Harvesting (5)  Roof Area:  m²  \nRoof Type: {{ $('Design Volume').item.json.z.rooftype }}  \nPurpose:   \nNumber of users: {{ $('Design Volume').item.json.y.number_of_users }}",
+              "type": "string"
+            },
+            {
+              "id": "18aea025-8b32-439d-865b-8bee76b80bd0",
+              "name": "Rainfall & Collection Data",
+              "value": "=2. Rainfall & Collection Data:\nWet month total precipitation (Rwet): {{ $('Design Volume').item.json.x.total_wet_month_precipitation_mm }}mm\nDry season length (t):{{ $('Design Volume').item.json.y.t }}\nDesign Volume (v): {{ $('Design Volume').item.json.Vdsgn }}m3",
+              "type": "string"
+            },
+            {
+              "id": "a132394d-48cd-45f4-b252-a27f33a00868",
+              "name": "Tank Geometry",
+              "value": "=3.Tank Geometry:\nInternal Length: {{ $json[\"Internal Length\"] }} \nInternal Width: {{ $json[\"Internal Width\"] }}\nInternal Height: {{ $json[\"Internal Height\"] }}\nRoof Slab Depth:{{ $json[\"RB Overall Depth\"] }}\nLong Wall Thickness:{{ $json[\"Long Wall Thickness\"] }}\nShort Wall Thickness:{{ $json[\"Short Wall Thickness\"] }}\nBase Slab Depth:{{ $json[\"Base Slab Overall Depth\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "10999775-4bd4-479a-abfe-7ae392a21ddb",
+              "name": "reinforcement details",
+              "value": "={{ $json[\"RB Short Span - Top\"] }}\n{{ $json[\"RB Short Span - Bottom\"] }}\n{{ $json[\"RB Long Span - Top\"] }}\n{{ $json[\"RB Long Span - Bottom\"] }}\n{{ $json[\"LW Vertical - Inside Face\"] }}\n{{ $json[\"LW Vertical - Outside Face\"] }}\n{{ $json[\"LW Horizontal - Both Faces\"] }}\n{{ $json[\"SW Vertical - Inside Face\"] }}\n{{ $json[\"SW Vertical - Outside Face\"] }}\n{{ $json[\"SW Horizontal - Inside Face\"] }}\n{{ $json[\"SW Horizontal - Outside Face\"] }}\n{{ $json[\"BS Short Span - Bottom\"] }}\n{{ $json[\"BS Short Span - Top\"] }}\n{{ $json[\"BS Long Span - Bottom\"] }}\n{{ $json[\"BS Long Span - Top\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "d3ae256d-7db9-46f9-b29c-f1a4b182590d",
+              "name": "structural members check",
+              "value": "={{ $json[\"RB Shear Check\"] }}\n{{ $json[\"RB Deflection Check\"] }}\n{{ $json[\"RB Crack Width Check\"] }}\n{{ $json[\"LW Axial Load Check\"] }}\n{{ $json[\"LW Shear Check\"] }}\n{{ $json[\"LW Crack Width Check\"] }}\n{{ $json[\"SW Axial Load Check\"] }}\n{{ $json[\"SW Shear Check\"] }}\n{{ $json[\"SW Crack Width Check\"] }}\n{{ $json[\"BS Bearing Capacity Check\"] }}\n{{ $json[\"BS Uplift Check\"] }}\n{{ $json[\"BS Shear Check\"] }}\n{{ $json[\"BS Punching Shear (Short Wall)\"] }}\n{{ $json[\"BS Punching Shear (Long Wall)\"] }}\n{{ $json[\"BS Crack Width Check\"] }}\n{{ $json[\"BS Punching Shear (Long Wall)\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "5586b09c-7159-4754-a732-34581556321b",
+              "name": "costing",
+              "value": "={{ $json[\"1.EarthWork\"] }}\n{{ $json[\"2.Reinforced Cement Concrete\"] }}\n{{ $json[\"3.Steel Reinforcement\"] }}\n{{ $json[\"4.Formwork\"] }}\n{{ $json[\"5.WaterProofing Works\"] }}\n{{ $json[\"6.Plastering Works\"] }}\n{{ $json[\"7.Plumbing & Fixtures\"] }}\n{{ $json[\"8.Contractor's Profit (10%)\"] }}\n{{ $json[\"9.Contingency (5%)\"] }}\n{{ $json[\"10.GST @ 18%\"] }}\n{{ $json[\"TOTAL COST(₹)\"] }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2000,
+        -128
+      ],
+      "id": "7b32a187-d0ae-481d-a85d-477b49afc50e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const formData = $('On form submission').first().json;\nconst rainfallData = $('Calculate Annual Rainfall').first().json;\nconst consumptionData = $('get consumption').first().json;\nconst runoffData = $('Runoff Coefficient').first().json;\nconst volumeData = $('Design Volume').first().json;\nconst dimensionData = $('Obtain length,breadth,depth').first().json;\nconst tankDetails = $('Get row(s) in sheet2').first().json;\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n    <title>Rainwater Harvesting Report</title>\n    <style>\n        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f5f5f5; }\n        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; }\n        .section { background: white; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }\n        .section h2 { color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px; margin-top: 0; }\n        table { width: 100%; border-collapse: collapse; margin-top: 15px; }\n        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }\n        th { background: #f8f9fa; font-weight: 600; }\n        .total-row { background: #667eea; color: white; font-weight: bold; font-size: 1.1em; }\n        .safe-badge { background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; }\n        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }\n        .info-card { background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #667eea; }\n        .info-label { color: #666; font-size: 0.9em; margin-bottom: 5px; }\n        .info-value { font-size: 1.2em; font-weight: bold; color: #333; }\n    </style>\n</head>\n<body>\n    <div class=\"header\">\n        <h1>🌧️ Rainwater Harvesting System Report</h1>\n        <p>Underground Storage Tank Design & Estimation</p>\n    </div>\n\n    <div class=\"section\">\n        <h2>1. Site Details</h2>\n        <div class=\"info-grid\">\n            <div class=\"info-card\">\n                <div class=\"info-label\">Location</div>\n                <div class=\"info-value\">${rainfallData.city}, ${rainfallData.country}</div>\n            </div>\n            <div class=\"info-card\">\n                <div class=\"info-label\">Roof Area</div>\n                <div class=\"info-value\">${formData['Roof Area']} m²</div>\n            </div>\n            <div class=\"info-card\">\n                <div class=\"info-label\">Roof Type</div>\n                <div class=\"info-value\">${runoffData.rooftype}</div>\n            </div>\n            <div class=\"info-card\">\n                <div class=\"info-label\">Purpose</div>\n                <div class=\"info-value\">${consumptionData.purpose}</div>\n            </div>\n            <div class=\"info-card\">\n                <div class=\"info-label\">Number of Users</div>\n                <div class=\"info-value\">${consumptionData.number_of_users}</div>\n            </div>\n        </div>\n    </div>\n\n    <div class=\"section\">\n        <h2>2. Rainfall & Collection Data</h2>\n        <div class=\"info-grid\">\n            <div class=\"info-card\">\n                <div class=\"info-label\">Wet Month Precipitation</div>\n                <div class=\"info-value\">${rainfallData.total_wet_month_precipitation_mm.toFixed(1)} mm</div>\n            </div>\n            <div class=\"info-card\">\n                <div class=\"info-label\">Days with Rain</div>\n                <div class=\"info-value\">${rainfallData.days_with_rain} days</div>\n            </div>\n            <div class=\"info-card\">\n                <div class=\"info-label\">Runoff Coefficient</div>\n                <div class=\"info-value\">${runoffData.runoff_coefficient}</div>\n            </div>\n            <div class=\"info-card\">\n                <div class=\"info-label\">Dry Season Length</div>\n                <div class=\"info-value\">${consumptionData.t} days</div>\n            </div>\n        </div>\n    </div>\n\n    <div class=\"section\">\n        <h2>3. Volume Calculations</h2>\n        <div class=\"info-grid\">\n            <div class=\"info-card\" style=\"border-left-color: #10b981;\">\n                <div class=\"info-label\">Volume Required</div>\n                <div class=\"info-value\">${volumeData.volume.toLocaleString()} L</div>\n            </div>\n            <div class=\"info-card\" style=\"border-left-color: #3b82f6;\">\n                <div class=\"info-label\">Volume Collectable</div>\n                <div class=\"info-value\">${volumeData.Vcollected.toLocaleString()} L</div>\n            </div>\n            <div class=\"info-card\" style=\"border-left-color: #8b5cf6;\">\n                <div class=\"info-label\">Design Volume</div>\n                <div class=\"info-value\">${volumeData.Vdsgn.toFixed(2)} m³</div>\n            </div>\n        </div>\n    </div>\n\n    <div class=\"section\">\n        <h2>4. Tank Dimensions</h2>\n        <table>\n            <tr><th>Parameter</th><th>Value</th></tr>\n            <tr><td>Internal Length</td><td>${dimensionData.length} m</td></tr>\n            <tr><td>Internal Width</td><td>${dimensionData.width} m</td></tr>\n            <tr><td>Internal Height</td><td>${dimensionData.depth} m</td></tr>\n            <tr><td>Roof Slab Depth</td><td>${tankDetails['RB Overall Depth']} m</td></tr>\n            <tr><td>Long Wall Thickness</td><td>${tankDetails['Long Wall Thickness']} m</td></tr>\n            <tr><td>Short Wall Thickness</td><td>${tankDetails['Short Wall Thickness']} m</td></tr>\n            <tr><td>Base Slab Depth</td><td>${tankDetails['Base Slab Overall Depth']} m</td></tr>\n        </table>\n    </div>\n\n    <div class=\"section\">\n        <h2>5. Reinforcement Details</h2>\n        <h3>Roof Slab</h3>\n        <table>\n            <tr><td>Short Span - Top</td><td>${tankDetails['RB Short Span - Top']}</td></tr>\n            <tr><td>Short Span - Bottom</td><td>${tankDetails['RB Short Span - Bottom']}</td></tr>\n            <tr><td>Long Span - Top</td><td>${tankDetails['RB Long Span - Top']}</td></tr>\n            <tr><td>Long Span - Bottom</td><td>${tankDetails['RB Long Span - Bottom']}</td></tr>\n        </table>\n        \n        <h3>Walls</h3>\n        <table>\n            <tr><td>LW Vertical - Inside</td><td>${tankDetails['LW Vertical - Inside Face']}</td></tr>\n            <tr><td>LW Vertical - Outside</td><td>${tankDetails['LW Vertical - Outside Face']}</td></tr>\n            <tr><td>SW Vertical - Inside</td><td>${tankDetails['SW Vertical - Inside Face']}</td></tr>\n            <tr><td>SW Vertical - Outside</td><td>${tankDetails['SW Vertical - Outside Face']}</td></tr>\n        </table>\n\n        <h3>Base Slab</h3>\n        <table>\n            <tr><td>Short Span - Bottom</td><td>${tankDetails['BS Short Span - Bottom']}</td></tr>\n            <tr><td>Long Span - Bottom</td><td>${tankDetails['BS Long Span - Bottom']}</td></tr>\n        </table>\n    </div>\n\n    <div class=\"section\">\n        <h2>6. Structural Checks</h2>\n        <table>\n            <tr><th>Check</th><th>Details</th><th>Status</th></tr>\n            <tr><td>RB Shear Check</td><td>${tankDetails['RB Shear Check']}</td><td><span class=\"safe-badge\">SAFE</span></td></tr>\n            <tr><td>RB Deflection Check</td><td>${tankDetails['RB Deflection Check']}</td><td><span class=\"safe-badge\">SAFE</span></td></tr>\n            <tr><td>LW Shear Check</td><td>${tankDetails['LW Shear Check']}</td><td><span class=\"safe-badge\">SAFE</span></td></tr>\n            <tr><td>BS Bearing Capacity</td><td>${tankDetails['BS Bearing Capacity Check']}</td><td><span class=\"safe-badge\">SAFE</span></td></tr>\n        </table>\n    </div>\n\n    <div class=\"section\">\n        <h2>7. Cost Estimation</h2>\n        <table>\n            <tr><th>S.No</th><th>Description</th><th>Amount (₹)</th></tr>\n            <tr><td>1</td><td>Earthwork</td><td>${tankDetails['1.EarthWork']}</td></tr>\n            <tr><td>2</td><td>RCC</td><td>${tankDetails['2.Reinforced Cement Concrete']}</td></tr>\n            <tr><td>3</td><td>Steel Reinforcement</td><td>${tankDetails['3.Steel Reinforcement']}</td></tr>\n            <tr><td>4</td><td>Formwork</td><td>${tankDetails['4.Formwork']}</td></tr>\n            <tr><td>5</td><td>Waterproofing</td><td>${tankDetails['5.WaterProofing Works']}</td></tr>\n            <tr><td>6</td><td>Plastering</td><td>${tankDetails['6.Plastering Works']}</td></tr>\n            <tr><td>7</td><td>Plumbing & Fixtures</td><td>${tankDetails['7.Plumbing & Fixtures']}</td></tr>\n            <tr><td>8</td><td>Contractor's Profit (10%)</td><td>${tankDetails[\"8.Contractor's Profit (10%)\"]}</td></tr>\n            <tr><td>9</td><td>Contingency (5%)</td><td>${tankDetails['9.Contingency (5%)']}</td></tr>\n            <tr><td>10</td><td>GST @ 18%</td><td>${tankDetails['10.GST @ 18%']}</td></tr>\n            <tr class=\"total-row\"><td colspan=\"2\">TOTAL COST</td><td>₹ ${tankDetails['TOTAL COST(₹)']}</td></tr>\n        </table>\n    </div>\n\n    <div class=\"section\" style=\"background: #fffbeb; border-left: 4px solid #f59e0b;\">\n        <h3 style=\"color: #d97706;\">⚠️ Important Notes</h3>\n        <ul>\n            <li>This design complies with IS 3370 and IS 456 standards</li>\n            <li>All structural members have passed safety checks</li>\n            <li>Consult a licensed structural engineer before construction</li>\n            <li>Costs are approximate and subject to market variations</li>\n        </ul>\n    </div>\n\n    <div style=\"text-align: center; margin-top: 30px; color: #666;\">\n        <p>Report Generated: ${new Date().toLocaleDateString('en-IN')}</p>\n    </div>\n</body>\n</html>\n`;\n\nreturn { json: { html_report: html } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2208,
+        -128
+      ],
+      "id": "91f03ec1-18e2-45ab-8f07-8bc14ead3661",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').first().json.Email }}",
+        "subject": "RW storage tank estimation",
+        "message": "={{ $json.html_report }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2416,
+        -128
+      ],
+      "id": "08b0f2db-6c74-43f4-b866-830b8448d981",
+      "name": "Send a message",
+      "webhookId": "4355bb99-a62d-49be-92c2-7b2d3af06f0e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xjVZ8urkKdIb0gTU",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Geocode",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Geocode": {
+      "main": [
+        [
+          {
+            "node": "Get wet month precipitation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Annual Rainfall": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get wet month precipitation": {
+      "main": [
+        [
+          {
+            "node": "Calculate Annual Rainfall",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "get consumption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Runoff Coefficient",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get consumption": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Design Volume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Runoff Coefficient": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Design Volume": {
+      "main": [
+        [
+          {
+            "node": "Obtain length,breadth,depth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtain length,breadth,depth": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4d5ecc50-4f02-4f0c-a9cd-29060863ab37",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "69e6ec08e495b65c44c9a9339d22d2ea3bd3522c6fb84bc5cd180dd2d727ad80"
+  },
+  "id": "pnMiplt53wn8De8V",
+  "tags": []
+}
