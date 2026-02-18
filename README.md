@@ -9,6 +9,8 @@ It collects user inputs, processes rainfall and water demand data, calculates ta
 ---
 ## 🚀Workflow Diagram
 
+flowchart TD
+
 A[Form Submission] --> B[Geocode Location API]
 B --> C[Fetch Wet Month Rainfall API]
 
