@@ -7,15 +7,16 @@ This mini project is an automated **Rainwater Harvesting Underground Tank Design
 It collects user inputs, processes rainfall and water demand data, calculates tank dimensions, performs structural checks, estimates cost, and sends an automated design report via email.
 
 ---
-## 🚀Workflow Diagram
+## 🔄 Workflow Diagram
 
+```mermaid
 flowchart TD
 
 A[Form Submission] --> B[Geocode Location API]
 B --> C[Fetch Wet Month Rainfall API]
 
-A --> D[Get Consumption Data<br>from Google Sheets]
-A --> E[Get Runoff Coefficient<br>from Google Sheets]
+A --> D[Get Consumption Data from Google Sheets]
+A --> E[Get Runoff Coefficient from Google Sheets]
 
 C --> F[Calculate Annual Rainfall]
 D --> G[Calculate Water Demand]
@@ -27,17 +28,16 @@ H --> I
 
 I --> J[Design Volume Calculation]
 
-J --> K[Calculate Tank Dimensions<br>(Length, Width, Depth)]
+J --> K[Calculate Tank Dimensions L W D]
 
 K --> L[Update Structural Design Sheet]
 
-L --> M[Fetch Structural & Cost Data]
+L --> M[Fetch Structural and Cost Data]
 
 M --> N[Generate HTML Report]
 
 N --> O[Send Email to User]
-
-
+```
 ## 🛠 Technologies Used
 
 | Technology | Category |
